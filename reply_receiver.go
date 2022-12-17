@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
+
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 var ResponsesCache = make(map[string]chan *ResponseMessage)
@@ -17,11 +18,14 @@ type ReplyReceiver struct {
 	client sarama.Client
 }
 
+// Listen waits for response from reply channel
 func (receiver *ReplyReceiver) Listen() error {
 	log.Info("[kafka] Start listening on reply channel")
+
 	if receiver.client == nil {
 		return errors.New("kafka client is nil")
 	}
+
 	if len(receiver.topic) == 0 {
 		return errors.New("invalid command topic")
 	}
@@ -62,6 +66,7 @@ func (receiver *ReplyReceiver) GetReplyForMessage(ctx context.Context, messageID
 	}
 }
 
+// handePartitionConsumer receives message from Kafka partition
 func (receiver *ReplyReceiver) handePartitionConsumer(partitionConsumer sarama.PartitionConsumer) {
 	var err error
 	defer func() {
@@ -87,6 +92,7 @@ func (receiver *ReplyReceiver) handePartitionConsumer(partitionConsumer sarama.P
 	}
 }
 
+// formatFromResponse decodes message from bytes
 func (receiver *ReplyReceiver) formatFromResponse(d []byte) (*ResponseMessage, error) {
 	var res ResponseMessage
 	return &res, json.Unmarshal(d, &res)
