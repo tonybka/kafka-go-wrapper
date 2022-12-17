@@ -2,6 +2,7 @@ package kafka_go_wrapper
 
 import (
 	"errors"
+
 	"github.com/Shopify/sarama"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -58,12 +59,11 @@ func (prod *CustomSyncProducer) reply(replyTopic, reqMessageID string, value []b
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (prod *CustomSyncProducer) sendMessage(topic, messageID, handleFunc string, message []byte) error {
-	//logrus.WithFields(logrus.Fields{"topic": topic, "messageID": messageID, "handleFunc": handleFunc}).
-	//	Info("[kafka] Sending event")
 
 	messageHeader := MessageHeader{
 		MsgID:        messageID,
@@ -78,10 +78,12 @@ func (prod *CustomSyncProducer) sendMessage(topic, messageID, handleFunc string,
 		Value:   sarama.ByteEncoder(message),
 		Headers: messageHeader.Format(),
 	}
+
 	partition, offset, err := prod.producer.SendMessage(msg)
 	if err != nil {
 		return err
 	}
+
 	logrus.WithFields(logrus.Fields{"partition": partition, "offset": offset}).Info("[kafka] Published new event")
 	return nil
 }
